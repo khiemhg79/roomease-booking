@@ -1,0 +1,258 @@
+# =========================================================
+# ROOMEASE - GITIGNORE
+# Backend Spring Boot + 3 Frontend Vite
+# =========================================================
+
+
+# =========================================================
+# ENVIRONMENT VARIABLES / SECRETS
+# =========================================================
+
+.env
+.env.*
+*.env
+*.env.*
+
+**/.env
+**/.env.*
+**/*.env
+**/*.env.*
+
+# Cho phép đẩy file mẫu
+!.env.example
+!**/.env.example
+
+
+# =========================================================
+# BACKEND - MAVEN / SPRING BOOT
+# =========================================================
+
+be/target/
+**/target/
+
+*.class
+*.jar
+*.war
+*.ear
+
+# Log Spring Boot
+be/logs/
+logs/
+*.log
+*.log.*
+
+# File runtime
+*.pid
+*.seed
+*.pid.lock
+
+
+# =========================================================
+# QUAN TRỌNG: KHÔNG IGNORE MAVEN WRAPPER
+# =========================================================
+
+# Không thêm các dòng sau:
+# be/.mvn/
+# .mvn/
+# mvnw
+# mvnw.cmd
+
+# Các file Maven Wrapper phải được đẩy lên Git:
+# be/.mvn/wrapper/maven-wrapper.properties
+# be/mvnw
+# be/mvnw.cmd
+
+
+# =========================================================
+# FRONTEND - NODE / VITE
+# =========================================================
+
+node_modules/
+**/node_modules/
+
+dist/
+**/dist/
+
+build/
+**/build/
+
+coverage/
+**/coverage/
+
+.vite/
+**/.vite/
+
+.cache/
+**/.cache/
+
+.eslintcache
+*.tsbuildinfo
+
+
+# =========================================================
+# FRONTEND CUSTOMER
+# =========================================================
+
+fe/customer/node_modules/
+fe/customer/dist/
+fe/customer/build/
+fe/customer/coverage/
+fe/customer/.vite/
+fe/customer/.env
+fe/customer/.env.*
+
+
+# =========================================================
+# FRONTEND MANAGER
+# =========================================================
+
+fe/manager/node_modules/
+fe/manager/dist/
+fe/manager/build/
+fe/manager/coverage/
+fe/manager/.vite/
+fe/manager/.env
+fe/manager/.env.*
+
+
+# =========================================================
+# FRONTEND ADMIN
+# =========================================================
+
+fe/admin/node_modules/
+fe/admin/dist/
+fe/admin/build/
+fe/admin/coverage/
+fe/admin/.vite/
+fe/admin/.env
+fe/admin/.env.*
+
+
+# =========================================================
+# IDE
+# =========================================================
+
+.idea/
+*.iml
+*.ipr
+*.iws
+
+.vscode/
+*.code-workspace
+
+.settings/
+.project
+.classpath
+.factorypath
+
+*.swp
+*.swo
+*~
+.history/
+
+
+# =========================================================
+# OPERATING SYSTEM
+# =========================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+$RECYCLE.BIN/
+
+
+# =========================================================
+# TEMPORARY FILES
+# =========================================================
+
+tmp/
+temp/
+.tmp/
+.temp/
+
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+*.cache
+
+
+# =========================================================
+# ARCHIVES
+# =========================================================
+
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+
+
+# =========================================================
+# PROJECT BACKUPS
+# =========================================================
+
+.manager-backup-*/
+backup/
+backups/
+
+project_source/
+
+
+# =========================================================
+# TEST / REPORT OUTPUT
+# =========================================================
+
+surefire-reports/
+failsafe-reports/
+test-results/
+playwright-report/
+
+**/surefire-reports/
+**/failsafe-reports/
+**/test-results/
+**/playwright-report/
+
+
+# =========================================================
+# LOCAL DATABASE FILES
+# PostgreSQL/Supabase SQL scripts vẫn được commit bình thường
+# =========================================================
+
+*.db
+*.sqlite
+*.sqlite3
+
+
+# =========================================================
+# CERTIFICATES / PRIVATE KEYS
+# =========================================================
+
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+
+# =========================================================
+# DEBUG FILES
+# =========================================================
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+hs_err_pid*
+replay_pid*

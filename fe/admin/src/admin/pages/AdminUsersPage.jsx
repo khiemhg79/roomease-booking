@@ -1,0 +1,18 @@
+import { useCallback, useEffect, useState } from 'react'
+import { adminApi } from '@/api/admin/adminApi'
+import { apiMessage } from '@/api/http'
+import ErrorAlert from '@/shared/components/ErrorAlert'
+import Loading from '@/shared/components/Loading'
+import { dateTimeVN } from '@/shared/utils/format'
+const EMPTY={content:[],page:0,totalElements:0,totalPages:0,first:true,last:true}
+export default function AdminUsersPage(){
+ const [data,setData]=useState(EMPTY),[filters,setFilters]=useState({keyword:'',role:'',status:''}),[applied,setApplied]=useState({}),[page,setPage]=useState(0),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[working,setWorking]=useState(null)
+ const load=useCallback(async()=>{setLoading(true);setError('');try{setData({...EMPTY,...await adminApi.users({page,size:20,...applied})})}catch(e){setError(apiMessage(e))}finally{setLoading(false)}},[page,applied])
+ useEffect(()=>{load()},[load])
+ const apply=e=>{e.preventDefault();setPage(0);setApplied(Object.fromEntries(Object.entries(filters).filter(([,v])=>v)))}
+ const mutate=async(user,kind,value)=>{setWorking(user.id);setError('');setNotice('');try{if(kind==='role')await adminApi.updateUserRole(user.id,value);else await adminApi.updateUserStatus(user.id,value);setNotice(`Đã cập nhật ${user.email}.`);await load()}catch(e){setError(apiMessage(e))}finally{setWorking(null)}}
+ return <main className="admin-page"><header className="admin-page-header"><div><p>Identity & access</p><h1>Người dùng và phân quyền</h1><span>Tách CUSTOMER, HOTEL_MANAGER và ADMIN; khóa hoặc mở tài khoản.</span></div><strong>{data.totalElements} tài khoản</strong></header><ErrorAlert message={error}/>{notice&&<div className="alert alert-success">{notice}</div>}
+ <form className="admin-filters" onSubmit={apply}><label>Tìm kiếm<input value={filters.keyword} onChange={e=>setFilters({...filters,keyword:e.target.value})} placeholder="Tên, email, điện thoại"/></label><label>Vai trò<select value={filters.role} onChange={e=>setFilters({...filters,role:e.target.value})}><option value="">Tất cả</option><option>CUSTOMER</option><option>HOTEL_MANAGER</option><option>ADMIN</option></select></label><label>Trạng thái<select value={filters.status} onChange={e=>setFilters({...filters,status:e.target.value})}><option value="">Tất cả</option><option>ACTIVE</option><option>BLOCKED</option><option>PENDING</option></select></label><button className="btn btn-primary">Lọc</button></form>
+ {loading?<Loading/>:<section className="admin-panel"><div className="admin-table-wrap"><table className="admin-table users-table"><thead><tr><th>Tài khoản</th><th>Liên hệ</th><th>Xác minh</th><th>Chỗ nghỉ</th><th>Vai trò</th><th>Trạng thái</th><th>Ngày tạo</th></tr></thead><tbody>{data.content.map(u=><tr key={u.id}><td><strong>{u.fullName}</strong><small>{u.id}</small></td><td>{u.email}<small>{u.phone||'Chưa có điện thoại'}</small></td><td>{u.emailVerified?'Đã xác minh':'Chưa xác minh'}</td><td>{u.propertyCount}</td><td><select disabled={working===u.id} value={u.role} onChange={e=>mutate(u,'role',e.target.value)}><option>CUSTOMER</option><option>HOTEL_MANAGER</option><option>ADMIN</option></select></td><td><select disabled={working===u.id} value={u.status} onChange={e=>mutate(u,'status',e.target.value)}><option>ACTIVE</option><option>BLOCKED</option><option>PENDING</option></select></td><td>{dateTimeVN(u.createdAt)}</td></tr>)}</tbody></table></div></section>}
+ {data.totalPages>1&&<nav className="pagination admin-pagination"><button disabled={data.first} onClick={()=>setPage(v=>v-1)}>← Trước</button><span>Trang {page+1}/{data.totalPages}</span><button disabled={data.last} onClick={()=>setPage(v=>v+1)}>Sau →</button></nav>}</main>
+}
