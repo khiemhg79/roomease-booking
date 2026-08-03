@@ -1,60 +1,37 @@
-import {
-  Link,
-  NavLink,
-} from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 import { useAuth } from '@/auth/AuthContext'
+import { useCompare } from '@/customer/context/CompareContext'
 
 export default function CustomerHeader() {
-  const {
-    user,
-    logout,
-  } = useAuth()
-
-  const customer =
-    user?.role === 'CUSTOMER'
+  const { user, logout } = useAuth()
+  const { count } = useCompare()
+  const customer = user?.role === 'CUSTOMER'
 
   return (
     <header className="site-header">
       <div className="container header-row">
-        <Link
-          className="brand"
-          to="/"
-        >
+        <Link className="brand" to="/">
           Room<span>Ease</span>
         </Link>
 
-        <nav
-          className="main-nav"
-          aria-label="Điều hướng khách hàng"
-        >
-          <NavLink
-            to="/"
-            end
-          >
-            Trang chủ
+        <nav className="main-nav" aria-label="Điều hướng khách hàng">
+          <NavLink to="/" end>Trang chủ</NavLink>
+          <NavLink to="/compare" className="nav-with-badge">
+            So sánh
+            {count > 0 && <span>{count}</span>}
           </NavLink>
-
-          {customer && (
-            <NavLink to="/bookings">
-              Đặt phòng của tôi
-            </NavLink>
-          )}
-
-          {customer && (
-            <NavLink to="/favourites">
-              Yêu thích
-            </NavLink>
-          )}
+          {customer && <NavLink to="/bookings">Đặt phòng của tôi</NavLink>}
+          {customer && <NavLink to="/favourites">Yêu thích</NavLink>}
+          {customer && <NavLink to="/account">Tài khoản</NavLink>}
         </nav>
 
         <div className="header-actions">
           {customer ? (
             <>
-              <span className="user-chip">
+              <Link className="user-chip" to="/account">
                 {user.fullName}
-              </span>
-
+              </Link>
               <button
                 className="btn btn-ghost"
                 type="button"
@@ -65,19 +42,8 @@ export default function CustomerHeader() {
             </>
           ) : (
             <>
-              <Link
-                className="btn btn-ghost"
-                to="/register"
-              >
-                Đăng ký
-              </Link>
-
-              <Link
-                className="btn btn-light"
-                to="/login"
-              >
-                Đăng nhập
-              </Link>
+              <Link className="btn btn-ghost" to="/register">Đăng ký</Link>
+              <Link className="btn btn-light" to="/login">Đăng nhập</Link>
             </>
           )}
         </div>
