@@ -11,7 +11,11 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,6 +29,11 @@ import java.util.UUID;
 public class PropertyController {
     private final PropertyService propertyService;
     private final SearchService searchService;
+
+    @GetMapping("/amenities")
+    public ApiResponse<List<com.roomease.property.dto.AmenityResponse>> amenities() {
+        return ApiResponse.ok(propertyService.amenities());
+    }
 
     @GetMapping("/featured")
     public ApiResponse<List<FeaturedPropertyResponse>> featured() {
@@ -45,12 +54,35 @@ public class PropertyController {
         @RequestParam(required = false) BigDecimal minPrice,
         @RequestParam(required = false) BigDecimal maxPrice,
         @RequestParam(required = false) List<String> amenities,
+        @RequestParam(required = false) Boolean freeCancellation,
+        @RequestParam(required = false) Boolean breakfastIncluded,
+        @RequestParam(required = false) Boolean payAtProperty,
+        @RequestParam(required = false) Boolean petsAllowed,
         @RequestParam(defaultValue = "recommended") String sort,
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
     ) {
-        return ApiResponse.ok(searchService.search(destination, checkIn, checkOut, adults, children, rooms,
-            propertyTypes, stars, minReviewScore, minPrice, maxPrice, amenities, sort, page, size));
+        return ApiResponse.ok(searchService.search(
+            destination,
+            checkIn,
+            checkOut,
+            adults,
+            children,
+            rooms,
+            propertyTypes,
+            stars,
+            minReviewScore,
+            minPrice,
+            maxPrice,
+            amenities,
+            freeCancellation,
+            breakfastIncluded,
+            payAtProperty,
+            petsAllowed,
+            sort,
+            page,
+            size
+        ));
     }
 
     @GetMapping("/{slug}")
@@ -62,7 +94,9 @@ public class PropertyController {
         @RequestParam(defaultValue = "0") int children,
         @RequestParam(defaultValue = "1") int rooms
     ) {
-        return ApiResponse.ok(propertyService.detail(slug, checkIn, checkOut, adults, children, rooms));
+        return ApiResponse.ok(
+            propertyService.detail(slug, checkIn, checkOut, adults, children, rooms)
+        );
     }
 
     @GetMapping("/{propertyId}/offers")
@@ -75,6 +109,8 @@ public class PropertyController {
         @RequestParam(defaultValue = "1") int rooms
     ) {
         propertyService.requireActive(propertyId);
-        return ApiResponse.ok(searchService.offers(propertyId, checkIn, checkOut, adults, children, rooms));
+        return ApiResponse.ok(
+            searchService.offers(propertyId, checkIn, checkOut, adults, children, rooms)
+        );
     }
 }

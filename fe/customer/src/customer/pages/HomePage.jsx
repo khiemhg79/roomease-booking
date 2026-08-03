@@ -28,6 +28,9 @@ const destinations = [
   ],
 ]
 
+const DEFAULT_PROPERTY_IMAGE =
+  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=85'
+
 export default function HomePage() {
   const [featured, setFeatured] = useState([])
   const [recent, setRecent] = useState([])
@@ -35,29 +38,70 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setRecent(getRecentlyViewed())
+    let active = true
 
-    propertyApi
-      .featured()
-      .then(setFeatured)
-      .catch((requestError) => setError(apiMessage(requestError)))
-      .finally(() => setLoading(false))
+    const loadHomeData = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const recentlyViewed = getRecentlyViewed()
+
+        if (active) {
+          setRecent(
+            Array.isArray(recentlyViewed)
+              ? recentlyViewed
+              : [],
+          )
+        }
+
+        const featuredProperties = await propertyApi.featured()
+
+        if (active) {
+          setFeatured(
+            Array.isArray(featuredProperties)
+              ? featuredProperties
+              : [],
+          )
+        }
+      } catch (requestError) {
+        if (active) {
+          setFeatured([])
+          setError(apiMessage(requestError))
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadHomeData()
+
+    return () => {
+      active = false
+    }
   }, [])
 
   return (
     <>
       <section className="hero">
         <div className="container hero-content">
-          <p className="eyebrow">Tìm chỗ nghỉ phù hợp với bạn</p>
+          <p className="eyebrow">
+            Tìm chỗ nghỉ phù hợp với bạn
+          </p>
+
           <h1>
             Ở đâu cũng dễ dàng
             <br />
             với RoomEase
           </h1>
+
           <p>
-            Tìm kiếm theo ngày, so sánh chỗ nghỉ, lưu yêu thích và quản lý
-            toàn bộ chuyến đi trong một tài khoản.
+            Tìm kiếm theo ngày, so sánh chỗ nghỉ, lưu yêu thích
+            và quản lý toàn bộ chuyến đi trong một tài khoản.
           </p>
+
           <SearchBox />
         </div>
       </section>
@@ -66,25 +110,36 @@ export default function HomePage() {
         <section className="customer-tool-grid">
           <Link to="/compare">
             <span>⇄</span>
+
             <div>
               <h3>So sánh chỗ nghỉ</h3>
-              <p>Đặt tối đa 3 lựa chọn cạnh nhau để quyết định nhanh hơn.</p>
+              <p>
+                Đặt tối đa 3 lựa chọn cạnh nhau để quyết định
+                nhanh hơn.
+              </p>
             </div>
           </Link>
 
           <Link to="/favourites">
             <span>♡</span>
+
             <div>
               <h3>Danh sách yêu thích</h3>
-              <p>Lưu lại khách sạn phù hợp để xem và đặt sau.</p>
+              <p>
+                Lưu lại khách sạn phù hợp để xem và đặt sau.
+              </p>
             </div>
           </Link>
 
           <Link to="/bookings">
             <span>✓</span>
+
             <div>
               <h3>Trợ lý chuyến đi</h3>
-              <p>Checklist chuẩn bị, thông tin booking và đánh giá sau kỳ nghỉ.</p>
+              <p>
+                Checklist chuẩn bị, thông tin booking và đánh giá
+                sau kỳ nghỉ.
+              </p>
             </div>
           </Link>
         </section>
@@ -92,7 +147,10 @@ export default function HomePage() {
         <section className="page-section compact-top-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow dark">Khám phá Việt Nam</p>
+              <p className="eyebrow dark">
+                Khám phá Việt Nam
+              </p>
+
               <h2>Điểm đến được yêu thích</h2>
             </div>
           </div>
@@ -102,9 +160,19 @@ export default function HomePage() {
               <Link
                 className="destination-card"
                 key={name}
-                to={`/search?destination=${encodeURIComponent(name)}&checkIn=${tomorrow(1)}&checkOut=${tomorrow(3)}&adults=2&children=0&rooms=1`}
+                to={
+                  `/search?destination=${encodeURIComponent(name)}` +
+                  `&checkIn=${tomorrow(1)}` +
+                  `&checkOut=${tomorrow(3)}` +
+                  '&adults=2&children=0&rooms=1'
+                }
               >
-                <img src={image} alt={name} />
+                <img
+                  src={image}
+                  alt={name}
+                  loading="lazy"
+                />
+
                 <span>{name}</span>
               </Link>
             ))}
@@ -115,29 +183,58 @@ export default function HomePage() {
           <section className="page-section">
             <div className="section-heading">
               <div>
-                <p className="eyebrow dark">Tiếp tục khám phá</p>
+                <p className="eyebrow dark">
+                  Tiếp tục khám phá
+                </p>
+
                 <h2>Chỗ nghỉ đã xem gần đây</h2>
               </div>
-              <Link className="section-link" to="/account">
+
+              <Link
+                className="section-link"
+                to="/account"
+              >
                 Mở không gian cá nhân →
               </Link>
             </div>
 
             <div className="recent-grid">
-              {recent.slice(0, 4).map((item) => (
+              {recent.slice(0, 4).map((item, index) => (
                 <Link
                   className="recent-card"
                   to={`/property/${item.slug}`}
-                  key={item.id}
+                  key={item.id || item.slug || index}
                 >
-                  <img src={item.thumbnailUrl} alt={item.name} />
+                  <img
+                    src={
+                      item.thumbnailUrl ||
+                      item.coverImageUrl ||
+                      DEFAULT_PROPERTY_IMAGE
+                    }
+                    alt={item.name || 'Chỗ nghỉ'}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.src =
+                        DEFAULT_PROPERTY_IMAGE
+                    }}
+                  />
+
                   <div>
-                    <span className="type-label">{item.propertyType}</span>
-                    <h3>{item.name}</h3>
-                    <p>{item.city}, {item.country}</p>
+                    <span className="type-label">
+                      {formatPropertyType(item.propertyType)}
+                    </span>
+
+                    <h3>{item.name || 'Chỗ nghỉ'}</h3>
+
+                    <p>
+                      {[item.city, item.country]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+
                     <RatingBadge
-                      score={item.reviewScore}
-                      count={item.reviewCount}
+                      score={Number(item.reviewScore || 0)}
+                      count={Number(item.reviewCount || 0)}
                     />
                   </div>
                 </Link>
@@ -149,7 +246,10 @@ export default function HomePage() {
         <section className="page-section">
           <div className="section-heading">
             <div>
-              <p className="eyebrow dark">Được đánh giá cao</p>
+              <p className="eyebrow dark">
+                Được đánh giá cao
+              </p>
+
               <h2>Chỗ nghỉ nổi bật</h2>
             </div>
           </div>
@@ -158,26 +258,68 @@ export default function HomePage() {
 
           {loading ? (
             <Loading />
-          ) : (
+          ) : featured.length > 0 ? (
             <div className="featured-grid">
-              {featured.map((item) => (
+              {featured.map((item, index) => (
                 <Link
                   className="featured-card"
                   to={`/property/${item.slug}`}
-                  key={item.id}
+                  key={item.id || item.slug || index}
                 >
-                  <img src={item.thumbnailUrl} alt={item.name} />
+                  <img
+                    src={
+                      item.thumbnailUrl ||
+                      item.coverImageUrl ||
+                      DEFAULT_PROPERTY_IMAGE
+                    }
+                    alt={item.name || 'Chỗ nghỉ'}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.src =
+                        DEFAULT_PROPERTY_IMAGE
+                    }}
+                  />
+
                   <div className="featured-body">
-                    <span className="type-label">{item.propertyType}</span>
-                    <h3>{item.name}</h3>
-                    <p>{item.city}, {item.country}</p>
+                    <span className="type-label">
+                      {formatPropertyType(item.propertyType)}
+                    </span>
+
+                    <h3>{item.name || 'Chỗ nghỉ'}</h3>
+
+                    <p>
+                      {[item.city, item.country]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+
                     <RatingBadge
-                      score={item.reviewScore}
-                      count={item.reviewCount}
+                      score={Number(item.reviewScore || 0)}
+                      count={Number(item.reviewCount || 0)}
                     />
                   </div>
                 </Link>
               ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <h3>Chưa có chỗ nghỉ nổi bật</h3>
+
+              <p>
+                Hiện chưa có chỗ nghỉ đang hoạt động được đánh dấu
+                nổi bật.
+              </p>
+
+              <Link
+                className="button primary"
+                to={
+                  `/search?checkIn=${tomorrow(1)}` +
+                  `&checkOut=${tomorrow(3)}` +
+                  '&adults=2&children=0&rooms=1'
+                }
+              >
+                Tìm chỗ nghỉ
+              </Link>
             </div>
           )}
         </section>
@@ -186,17 +328,25 @@ export default function HomePage() {
           <div>
             <b>✓</b>
             <h3>Giá và tồn phòng theo ngày</h3>
-            <p>Không dùng một mức giá cố định cho mọi ngày.</p>
+            <p>
+              Không dùng một mức giá cố định cho mọi ngày.
+            </p>
           </div>
+
           <div>
             <b>✓</b>
             <h3>Chính sách rõ ràng</h3>
-            <p>Biết trước bữa sáng, hoàn hủy và thanh toán.</p>
+            <p>
+              Biết trước bữa sáng, hoàn hủy và thanh toán.
+            </p>
           </div>
+
           <div>
             <b>✓</b>
             <h3>Quản lý booking thông minh</h3>
-            <p>Theo dõi trạng thái, checklist và đánh giá sau kỳ nghỉ.</p>
+            <p>
+              Theo dõi trạng thái, checklist và đánh giá sau kỳ nghỉ.
+            </p>
           </div>
         </section>
       </main>
@@ -207,5 +357,23 @@ export default function HomePage() {
 function tomorrow(days) {
   const date = new Date()
   date.setDate(date.getDate() + days)
-  return date.toISOString().slice(0, 10)
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function formatPropertyType(propertyType) {
+  const labels = {
+    HOTEL: 'Khách sạn',
+    APARTMENT: 'Căn hộ',
+    RESORT: 'Khu nghỉ dưỡng',
+    VILLA: 'Biệt thự',
+    HOSTEL: 'Hostel',
+    HOMESTAY: 'Homestay',
+  }
+
+  return labels[propertyType] || propertyType || 'Chỗ nghỉ'
 }

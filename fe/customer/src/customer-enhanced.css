@@ -1188,3 +1188,127 @@
         width: 100%;
     }
 }
+
+/* Phase 1 customer booking enhancements */
+.booking-benefits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    margin: .7rem 0;
+}
+
+.booking-benefits span {
+    background: #eefbf3;
+    color: #147a3d;
+    border-radius: 999px;
+    padding: .3rem .55rem;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.property-price del {
+    color: #8a8f98;
+    font-size: .85rem;
+}
+
+.discount-tag {
+    background: #d92d20 !important;
+    color: #fff !important;
+}
+
+.booking-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    margin: 0 0 2rem;
+    padding: 1rem;
+    border: 1px solid #e4e7ec;
+    border-radius: 16px;
+    background: #fff;
+    overflow: auto;
+}
+
+.booking-progress span {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    color: #98a2b3;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.booking-progress span.active {
+    color: #174ea6;
+}
+
+.booking-progress b {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #eaecf0;
+}
+
+.booking-progress span.active b {
+    background: #174ea6;
+    color: #fff;
+}
+
+.booking-progress i {
+    color: #98a2b3;
+    font-style: normal;
+}
+
+.property-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.info-panel {
+    border: 1px solid #e4e7ec;
+    border-radius: 18px;
+    padding: 1.4rem;
+    background: #fff;
+}
+
+.info-panel h2 {
+    margin-top: 0;
+}
+
+.info-panel details {
+    border-top: 1px solid #eaecf0;
+    padding: .85rem 0;
+}
+
+.info-panel summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.nearby-list {
+    padding-left: 1.1rem;
+    color: #667085;
+    line-height: 1.8;
+}
+
+@media (max-width: 800px) {
+    .property-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-progress {
+        justify-content: flex-start;
+    }
+}
+
+.filter-clear-link {
+    border: 0;
+    background: transparent;
+    padding: 6px 0 0;
+    color: var(--customer-primary, #1457d9);
+    cursor: pointer;
+    text-align: left;
+}

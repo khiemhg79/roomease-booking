@@ -23,6 +23,12 @@ public class PropertyService {
     private final PropertyPolicyRepository policyRepository;
     private final SearchService searchService;
 
+    public List<AmenityResponse> amenities() {
+        return amenityRepository.findAllByOrderByCategoryAscNameAsc().stream()
+            .map(a -> new AmenityResponse(a.getId(), a.getCode(), a.getName(), a.getCategory(), a.getIcon()))
+            .toList();
+    }
+
     public List<FeaturedPropertyResponse> featured() {
         return propertyRepository.findTop8ByStatusAndFeaturedTrueOrderByReviewScoreDesc(PropertyStatus.ACTIVE)
             .stream().map(p -> {

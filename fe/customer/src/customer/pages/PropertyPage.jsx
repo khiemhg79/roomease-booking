@@ -332,6 +332,45 @@ export default function PropertyPage() {
           </div>
         </section>
 
+        <section className="page-section property-info-grid">
+          <article className="info-panel">
+            <h2>Vị trí chỗ nghỉ</h2>
+            <p>
+              {property.addressLine}
+              {property.ward ? `, ${property.ward}` : ''}
+              {property.district ? `, ${property.district}` : ''}
+              {property.city ? `, ${property.city}` : ''}
+              {property.province ? `, ${property.province}` : ''}
+              {property.country ? `, ${property.country}` : ''}
+            </p>
+            {property.latitude && property.longitude ? (
+              <a
+                className="section-link"
+                target="_blank"
+                rel="noreferrer"
+                href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
+              >
+                Mở vị trí trên Google Maps →
+              </a>
+            ) : (
+              <p>Chỗ nghỉ chưa cập nhật tọa độ bản đồ.</p>
+            )}
+          </article>
+
+          <article className="info-panel">
+            <h2>Giờ nhận và trả phòng</h2>
+            <p>
+              Nhận phòng từ <strong>{property.checkInFrom?.slice(0, 5)}</strong>
+              {property.checkInUntil ? ` đến ${property.checkInUntil.slice(0, 5)}` : ''}.
+            </p>
+            <p>
+              Trả phòng
+              {property.checkOutFrom ? ` từ ${property.checkOutFrom.slice(0, 5)}` : ''}
+              {' '}đến <strong>{property.checkOutUntil?.slice(0, 5)}</strong>.
+            </p>
+          </article>
+        </section>
+
         {property.policies && (
           <section className="policy-box">
             <h2>Quy tắc chỗ nghỉ</h2>

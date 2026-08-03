@@ -18,10 +18,15 @@ public record SearchPropertyResponse(
     String thumbnailUrl,
     List<String> amenities,
     BigDecimal minNightlyPrice,
+    BigDecimal originalMinNightlyPrice,
     BigDecimal minTotalPrice,
+    BigDecimal originalMinTotalPrice,
     String currency,
     boolean freeCancellation,
     boolean breakfastIncluded,
-    int availableRooms
+    boolean payAtProperty,
+    int discountPercent,
+    int availableRooms,
+    String petsPolicy
 ) {
 }

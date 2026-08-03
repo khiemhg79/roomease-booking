@@ -13,7 +13,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -33,94 +35,188 @@ public class PropertySearchRepository {
         BigDecimal minNightlyPrice,
         BigDecimal maxNightlyPrice,
         List<String> amenityCodes,
+        Boolean freeCancellation,
+        Boolean breakfastIncluded,
+        Boolean payAtProperty,
+        Boolean petsAllowed,
         String sort,
         int page,
         int size
     ) {
         long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
-        MapSqlParameterSource params = baseParams(checkIn, checkOut, adults, children, rooms, nights)
+        MapSqlParameterSource params = baseParams(
+            checkIn,
+            checkOut,
+            adults,
+            children,
+            rooms,
+            nights
+        )
             .addValue("destination", destination == null ? "" : destination.trim())
             .addValue("limit", size)
-            .addValue("offset", page * size);
+            .addValue("offset", page * size)
+            .addValue("freeCancellationFilter", Boolean.TRUE.equals(freeCancellation))
+            .addValue("breakfastIncludedFilter", Boolean.TRUE.equals(breakfastIncluded))
+            .addValue("payAtPropertyFilter", Boolean.TRUE.equals(payAtProperty));
 
         StringBuilder filters = new StringBuilder(" WHERE 1=1 ");
+
         if (destination != null && !destination.isBlank()) {
-            filters.append(" AND (LOWER(p.name) LIKE LOWER('%' || :destination || '%') " +
-                "OR LOWER(p.city) LIKE LOWER('%' || :destination || '%') " +
-                "OR LOWER(COALESCE(p.district,'')) LIKE LOWER('%' || :destination || '%') " +
-                "OR LOWER(COALESCE(p.province,'')) LIKE LOWER('%' || :destination || '%') " +
-                "OR LOWER(p.country) LIKE LOWER('%' || :destination || '%')) ");
+            filters.append("""
+                 AND (
+                      LOWER(p.name) LIKE LOWER('%' || :destination || '%')
+                   OR LOWER(p.city) LIKE LOWER('%' || :destination || '%')
+                   OR LOWER(COALESCE(p.district, '')) LIKE LOWER('%' || :destination || '%')
+                   OR LOWER(COALESCE(p.province, '')) LIKE LOWER('%' || :destination || '%')
+                   OR LOWER(p.country) LIKE LOWER('%' || :destination || '%')
+                 )
+                """);
         }
+
         if (propertyTypes != null && !propertyTypes.isEmpty()) {
             filters.append(" AND p.property_type IN (:propertyTypes) ");
             params.addValue("propertyTypes", propertyTypes);
         }
+
         if (stars != null && !stars.isEmpty()) {
             filters.append(" AND p.star_rating IN (:stars) ");
             params.addValue("stars", stars);
         }
+
         if (minReviewScore != null) {
             filters.append(" AND p.review_score >= :minReviewScore ");
             params.addValue("minReviewScore", minReviewScore);
         }
+
         if (minNightlyPrice != null) {
-            filters.append(" AND (pp.min_total_price / :nights) >= :minNightlyPrice ");
+            filters.append(" AND (cp.total_price / :nights) >= :minNightlyPrice ");
             params.addValue("minNightlyPrice", minNightlyPrice);
         }
+
         if (maxNightlyPrice != null) {
-            filters.append(" AND (pp.min_total_price / :nights) <= :maxNightlyPrice ");
+            filters.append(" AND (cp.total_price / :nights) <= :maxNightlyPrice ");
             params.addValue("maxNightlyPrice", maxNightlyPrice);
         }
+
+        if (Boolean.TRUE.equals(petsAllowed)) {
+            filters.append(" AND COALESCE(pol.pets_policy, 'NOT_ALLOWED') IN ('ALLOWED', 'ON_REQUEST') ");
+        }
+
         if (amenityCodes != null && !amenityCodes.isEmpty()) {
             filters.append("""
-                AND (SELECT COUNT(DISTINCT a.code)
+                 AND (
+                     SELECT COUNT(DISTINCT a.code)
                        FROM property_amenities pa
                        JOIN amenities a ON a.id = pa.amenity_id
-                      WHERE pa.property_id = p.id AND a.code IN (:amenityCodes)) = :amenityCount
+                      WHERE pa.property_id = p.id
+                        AND a.code IN (:amenityCodes)
+                 ) = :amenityCount
                 """);
             params.addValue("amenityCodes", amenityCodes);
             params.addValue("amenityCount", amenityCodes.size());
         }
 
         String orderBy = switch (sort == null ? "recommended" : sort) {
-            case "price_asc" -> "pp.min_total_price ASC, p.review_score DESC";
-            case "price_desc" -> "pp.min_total_price DESC, p.review_score DESC";
+            case "price_asc" -> "cp.total_price ASC, p.review_score DESC";
+            case "price_desc" -> "cp.total_price DESC, p.review_score DESC";
             case "rating_desc" -> "p.review_score DESC, p.review_count DESC";
             case "stars_desc" -> "p.star_rating DESC, p.review_score DESC";
             default -> "p.featured DESC, p.review_score DESC, p.review_count DESC";
         };
 
         String sql = availabilityCte() + """
-            , property_prices AS (
+            , filtered_offers AS (
+                SELECT eo.*
+                  FROM eligible_offers eo
+                 WHERE (:freeCancellationFilter = FALSE
+                        OR (eo.refundable = TRUE AND eo.cancellation_type <> 'NON_REFUNDABLE'))
+                   AND (:breakfastIncludedFilter = FALSE OR eo.meal_plan <> 'ROOM_ONLY')
+                   AND (:payAtPropertyFilter = FALSE OR eo.pay_at_property = TRUE)
+            ), ranked_offers AS (
+                SELECT fo.*,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY fo.property_id
+                           ORDER BY fo.total_price ASC, fo.original_total_price ASC, fo.rate_plan_id
+                       ) AS price_rank
+                  FROM filtered_offers fo
+            ), cheapest_property_offer AS (
                 SELECT property_id,
-                       MIN(total_price) AS min_total_price,
-                       BOOL_OR(refundable) AS free_cancellation,
-                       BOOL_OR(meal_plan <> 'ROOM_ONLY') AS breakfast_included,
-                       MAX(available_rooms) AS available_rooms,
-                       MIN(currency) AS currency
-                  FROM eligible_offers
-                 GROUP BY property_id
+                       total_price,
+                       original_total_price,
+                       currency,
+                       refundable
+                           AND cancellation_type <> 'NON_REFUNDABLE' AS free_cancellation,
+                       meal_plan <> 'ROOM_ONLY' AS breakfast_included,
+                       pay_at_property,
+                       available_rooms
+                  FROM ranked_offers
+                 WHERE price_rank = 1
             )
-            SELECT p.id, p.slug, p.name, p.property_type, p.address_line, p.city, p.country,
-                   p.star_rating, p.review_score, p.review_count,
-                   COALESCE((SELECT pi.image_url FROM property_images pi
-                              WHERE pi.property_id = p.id
-                              ORDER BY pi.is_cover DESC, pi.sort_order ASC LIMIT 1), '') AS thumbnail_url,
-                   COALESCE((SELECT STRING_AGG(x.name, '||' ORDER BY x.name)
-                               FROM (SELECT a.name FROM property_amenities pa
-                                     JOIN amenities a ON a.id = pa.amenity_id
-                                    WHERE pa.property_id = p.id LIMIT 5) x), '') AS amenities,
-                   ROUND(pp.min_total_price / :nights, 0) AS min_nightly_price,
-                   pp.min_total_price, pp.currency, pp.free_cancellation, pp.breakfast_included,
-                   pp.available_rooms, COUNT(*) OVER() AS total_count
+            SELECT p.id,
+                   p.slug,
+                   p.name,
+                   p.property_type,
+                   p.address_line,
+                   p.city,
+                   p.country,
+                   p.star_rating,
+                   p.review_score,
+                   p.review_count,
+                   COALESCE(
+                       (
+                           SELECT pi.image_url
+                             FROM property_images pi
+                            WHERE pi.property_id = p.id
+                            ORDER BY pi.is_cover DESC, pi.sort_order ASC, pi.created_at ASC
+                            LIMIT 1
+                       ),
+                       ''
+                   ) AS thumbnail_url,
+                   COALESCE(
+                       (
+                           SELECT STRING_AGG(items.name, '||' ORDER BY items.name)
+                             FROM (
+                                 SELECT a.name
+                                   FROM property_amenities pa
+                                   JOIN amenities a ON a.id = pa.amenity_id
+                                  WHERE pa.property_id = p.id
+                                  ORDER BY a.name
+                                  LIMIT 5
+                             ) items
+                       ),
+                       ''
+                   ) AS amenities,
+                   ROUND(cp.total_price / :nights, 0) AS min_nightly_price,
+                   ROUND(cp.original_total_price / :nights, 0) AS original_min_nightly_price,
+                   cp.total_price AS min_total_price,
+                   cp.original_total_price AS original_min_total_price,
+                   cp.currency,
+                   cp.free_cancellation,
+                   cp.breakfast_included,
+                   cp.pay_at_property,
+                   CASE
+                       WHEN cp.original_total_price > cp.total_price
+                       THEN ROUND(
+                           (1 - cp.total_price / NULLIF(cp.original_total_price, 0)) * 100,
+                           0
+                       )
+                       ELSE 0
+                   END AS discount_percent,
+                   cp.available_rooms,
+                   COALESCE(pol.pets_policy, 'NOT_ALLOWED') AS pets_policy,
+                   COUNT(*) OVER() AS total_count
               FROM properties p
-              JOIN property_prices pp ON pp.property_id = p.id
+              JOIN cheapest_property_offer cp ON cp.property_id = p.id
+              LEFT JOIN property_policies pol ON pol.property_id = p.id
             """ + filters + " ORDER BY " + orderBy + " LIMIT :limit OFFSET :offset";
 
         List<SearchRow> rows = jdbc.query(sql, params, this::mapSearchRow);
         long total = rows.isEmpty() ? 0 : rows.getFirst().totalCount();
-        List<SearchPropertyResponse> content = rows.stream().map(SearchRow::response).toList();
+        List<SearchPropertyResponse> content = rows.stream()
+            .map(SearchRow::response)
+            .toList();
         int totalPages = size == 0 ? 0 : (int) Math.ceil((double) total / size);
+
         return new SearchPageResponse(content, page, size, total, totalPages);
     }
 
@@ -133,26 +229,62 @@ public class PropertySearchRepository {
         int rooms
     ) {
         long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
-        MapSqlParameterSource params = baseParams(checkIn, checkOut, adults, children, rooms, nights)
-            .addValue("propertyId", propertyId);
+        MapSqlParameterSource params = baseParams(
+            checkIn,
+            checkOut,
+            adults,
+            children,
+            rooms,
+            nights
+        ).addValue("propertyId", propertyId);
 
         String sql = availabilityCte() + """
-            SELECT eo.room_type_id, eo.rate_plan_id, eo.room_name, rt.description AS room_description,
-                   rt.room_size_sqm, rt.bed_summary, rt.view_name, rt.max_adults, rt.max_children, rt.max_guests,
-                   COALESCE((SELECT rti.image_url FROM room_type_images rti
-                              WHERE rti.room_type_id = rt.id ORDER BY rti.sort_order LIMIT 1), '') AS image_url,
-                   COALESCE((SELECT STRING_AGG(a.name, '||' ORDER BY a.name)
-                               FROM room_amenities ra JOIN amenities a ON a.id = ra.amenity_id
-                              WHERE ra.room_type_id = rt.id), '') AS room_amenities,
-                   eo.rate_plan_name, eo.meal_plan, eo.cancellation_type, eo.cancellation_days,
-                   eo.refundable, eo.pay_at_property, rp.description AS rate_description,
+            SELECT eo.room_type_id,
+                   eo.rate_plan_id,
+                   eo.room_name,
+                   rt.description AS room_description,
+                   rt.room_size_sqm,
+                   rt.bed_summary,
+                   rt.view_name,
+                   rt.max_adults,
+                   rt.max_children,
+                   rt.max_guests,
+                   COALESCE(
+                       (
+                           SELECT rti.image_url
+                             FROM room_type_images rti
+                            WHERE rti.room_type_id = rt.id
+                            ORDER BY rti.sort_order ASC, rti.created_at ASC
+                            LIMIT 1
+                       ),
+                       ''
+                   ) AS image_url,
+                   COALESCE(
+                       (
+                           SELECT STRING_AGG(a.name, '||' ORDER BY a.name)
+                             FROM room_amenities ra
+                             JOIN amenities a ON a.id = ra.amenity_id
+                            WHERE ra.room_type_id = rt.id
+                       ),
+                       ''
+                   ) AS room_amenities,
+                   eo.rate_plan_name,
+                   eo.meal_plan,
+                   eo.cancellation_type,
+                   eo.cancellation_days,
+                   eo.refundable,
+                   eo.pay_at_property,
+                   rp.description AS rate_description,
                    ROUND(eo.total_price / :nights, 0) AS average_nightly_price,
-                   eo.total_price, eo.original_total_price, eo.currency, eo.available_rooms
+                   eo.total_price,
+                   eo.original_total_price,
+                   eo.currency,
+                   eo.available_rooms
               FROM eligible_offers eo
               JOIN room_types rt ON rt.id = eo.room_type_id
               JOIN rate_plans rp ON rp.id = eo.rate_plan_id
              WHERE eo.property_id = :propertyId
-             ORDER BY rt.name, eo.total_price
+             ORDER BY rt.name, eo.total_price, rp.name
             """;
 
         return jdbc.query(sql, params, (rs, rowNum) -> new RoomOfferResponse(
@@ -186,36 +318,78 @@ public class PropertySearchRepository {
     private String availabilityCte() {
         return """
             WITH eligible_offers AS (
-                SELECT p.id AS property_id, rt.id AS room_type_id, rp.id AS rate_plan_id,
-                       rt.name AS room_name, rp.name AS rate_plan_name, rp.meal_plan,
-                       rp.cancellation_type, rp.cancellation_days, rp.refundable, rp.pay_at_property,
+                SELECT p.id AS property_id,
+                       rt.id AS room_type_id,
+                       rp.id AS rate_plan_id,
+                       rt.name AS room_name,
+                       rp.name AS rate_plan_name,
+                       rp.meal_plan,
+                       rp.cancellation_type,
+                       rp.cancellation_days,
+                       rp.refundable,
+                       rp.pay_at_property,
                        SUM(rc.price) AS total_price,
                        SUM(COALESCE(rc.original_price, rc.price)) AS original_total_price,
                        MIN(rc.currency) AS currency,
                        MIN(ic.allotment - ic.reserved_rooms) AS available_rooms
                   FROM properties p
-                  JOIN room_types rt ON rt.property_id = p.id AND rt.active = TRUE
-                  JOIN rate_plans rp ON rp.room_type_id = rt.id AND rp.active = TRUE
-                  JOIN inventory_calendar ic ON ic.room_type_id = rt.id
-                  JOIN rate_calendar rc ON rc.rate_plan_id = rp.id AND rc.stay_date = ic.stay_date
+                  JOIN room_types rt
+                    ON rt.property_id = p.id
+                   AND rt.active = TRUE
+                  JOIN rate_plans rp
+                    ON rp.room_type_id = rt.id
+                   AND rp.active = TRUE
+                  JOIN inventory_calendar ic
+                    ON ic.room_type_id = rt.id
+                  JOIN rate_calendar rc
+                    ON rc.rate_plan_id = rp.id
+                   AND rc.stay_date = ic.stay_date
                  WHERE p.status = 'ACTIVE'
-                   AND ic.stay_date >= :checkIn AND ic.stay_date < :checkOut
-                   AND rc.available = TRUE AND ic.stop_sell = FALSE
+                   AND ic.stay_date >= :checkIn
+                   AND ic.stay_date < :checkOut
+                   AND rc.available = TRUE
+                   AND ic.stop_sell = FALSE
                    AND rt.max_adults * :rooms >= :adults
                    AND rt.max_children * :rooms >= :children
-                 GROUP BY p.id, rt.id, rp.id, rt.name, rp.name, rp.meal_plan,
-                          rp.cancellation_type, rp.cancellation_days, rp.refundable, rp.pay_at_property
+                 GROUP BY p.id,
+                          rt.id,
+                          rp.id,
+                          rt.name,
+                          rp.name,
+                          rp.meal_plan,
+                          rp.cancellation_type,
+                          rp.cancellation_days,
+                          rp.refundable,
+                          rp.pay_at_property
                 HAVING COUNT(*) = :nights
                    AND MIN(ic.allotment - ic.reserved_rooms) >= :rooms
                    AND MAX(ic.min_stay) <= :nights
                    AND (MIN(ic.max_stay) IS NULL OR :nights <= MIN(ic.max_stay))
-                   AND BOOL_AND(CASE WHEN ic.stay_date = :checkIn THEN NOT ic.closed_to_arrival ELSE TRUE END)
-                   AND BOOL_AND(CASE WHEN ic.stay_date = (CAST(:checkOut AS date) - 1) THEN NOT ic.closed_to_departure ELSE TRUE END)
+                   AND BOOL_AND(
+                       CASE
+                           WHEN ic.stay_date = :checkIn THEN NOT ic.closed_to_arrival
+                           ELSE TRUE
+                       END
+                   )
+                   AND BOOL_AND(
+                       CASE
+                           WHEN ic.stay_date = (CAST(:checkOut AS date) - 1)
+                           THEN NOT ic.closed_to_departure
+                           ELSE TRUE
+                       END
+                   )
             )
             """;
     }
 
-    private MapSqlParameterSource baseParams(LocalDate checkIn, LocalDate checkOut, int adults, int children, int rooms, long nights) {
+    private MapSqlParameterSource baseParams(
+        LocalDate checkIn,
+        LocalDate checkOut,
+        int adults,
+        int children,
+        int rooms,
+        long nights
+    ) {
         return new MapSqlParameterSource()
             .addValue("checkIn", checkIn)
             .addValue("checkOut", checkOut)
@@ -227,20 +401,44 @@ public class PropertySearchRepository {
 
     private SearchRow mapSearchRow(ResultSet rs, int rowNum) throws SQLException {
         SearchPropertyResponse response = new SearchPropertyResponse(
-            rs.getObject("id", UUID.class), rs.getString("slug"), rs.getString("name"),
-            rs.getString("property_type"), rs.getString("address_line"), rs.getString("city"),
-            rs.getString("country"), rs.getInt("star_rating"), rs.getBigDecimal("review_score"),
-            rs.getInt("review_count"), rs.getString("thumbnail_url"), split(rs.getString("amenities")),
-            rs.getBigDecimal("min_nightly_price"), rs.getBigDecimal("min_total_price"), rs.getString("currency"),
-            rs.getBoolean("free_cancellation"), rs.getBoolean("breakfast_included"), rs.getInt("available_rooms")
+            rs.getObject("id", UUID.class),
+            rs.getString("slug"),
+            rs.getString("name"),
+            rs.getString("property_type"),
+            rs.getString("address_line"),
+            rs.getString("city"),
+            rs.getString("country"),
+            rs.getInt("star_rating"),
+            rs.getBigDecimal("review_score"),
+            rs.getInt("review_count"),
+            rs.getString("thumbnail_url"),
+            split(rs.getString("amenities")),
+            rs.getBigDecimal("min_nightly_price"),
+            rs.getBigDecimal("original_min_nightly_price"),
+            rs.getBigDecimal("min_total_price"),
+            rs.getBigDecimal("original_min_total_price"),
+            rs.getString("currency"),
+            rs.getBoolean("free_cancellation"),
+            rs.getBoolean("breakfast_included"),
+            rs.getBoolean("pay_at_property"),
+            rs.getInt("discount_percent"),
+            rs.getInt("available_rooms"),
+            rs.getString("pets_policy")
         );
+
         return new SearchRow(response, rs.getLong("total_count"));
     }
 
     private List<String> split(String value) {
-        if (value == null || value.isBlank()) return List.of();
-        return Arrays.stream(value.split("\\|\\|")).filter(s -> !s.isBlank()).toList();
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+
+        return Arrays.stream(value.split("\\|\\|"))
+            .filter(item -> !item.isBlank())
+            .toList();
     }
 
-    private record SearchRow(SearchPropertyResponse response, long totalCount) {}
+    private record SearchRow(SearchPropertyResponse response, long totalCount) {
+    }
 }

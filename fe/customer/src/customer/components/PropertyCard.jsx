@@ -23,9 +23,11 @@ export default function PropertyCard({
             src={property.thumbnailUrl}
             alt={property.name}
           />
-          {property.breakfastIncluded && (
+          {property.discountPercent > 0 ? (
+            <span className="image-tag discount-tag">Giảm {property.discountPercent}%</span>
+          ) : property.breakfastIncluded ? (
             <span className="image-tag">Có bữa sáng</span>
-          )}
+          ) : null}
         </Link>
 
         <div className="property-image-actions">
@@ -66,9 +68,12 @@ export default function PropertyCard({
           ))}
         </div>
 
-        {property.freeCancellation && (
-          <p className="success-text">✓ Có lựa chọn hủy miễn phí</p>
-        )}
+        <div className="booking-benefits">
+          {property.freeCancellation && <span>✓ Hủy miễn phí</span>}
+          {property.breakfastIncluded && <span>✓ Có bữa sáng</span>}
+          {property.payAtProperty && <span>✓ Thanh toán tại chỗ nghỉ</span>}
+          {['ALLOWED', 'ON_REQUEST'].includes(property.petsPolicy) && <span>✓ Có chính sách thú cưng</span>}
+        </div>
 
         <button
           type="button"
@@ -82,7 +87,13 @@ export default function PropertyCard({
 
       <div className="property-price">
         <span>Giá từ mỗi đêm</span>
+        {property.originalMinNightlyPrice && Number(property.originalMinNightlyPrice) > Number(property.minNightlyPrice) && (
+          <del>{money(property.originalMinNightlyPrice, property.currency)}</del>
+        )}
         <strong>{money(property.minNightlyPrice, property.currency)}</strong>
+        {property.originalMinTotalPrice && Number(property.originalMinTotalPrice) > Number(property.minTotalPrice) && (
+          <small><del>{money(property.originalMinTotalPrice, property.currency)}</del></small>
+        )}
         <small>Tổng {money(property.minTotalPrice, property.currency)}</small>
         {property.availableRooms > 0 && property.availableRooms <= 3 && (
           <em>Chỉ còn {property.availableRooms} phòng</em>
