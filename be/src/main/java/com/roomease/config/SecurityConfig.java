@@ -57,6 +57,7 @@ public class SecurityConfig {
                     "/api/v1/auth/admin/login"
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/payments/sepay/webhook").permitAll()
                 .requestMatchers(HttpMethod.GET,
                     "/api/v1/properties",
                     "/api/v1/properties/**",
@@ -66,7 +67,7 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/manager/**").hasAnyRole("HOTEL_MANAGER", "ADMIN")
-                .requestMatchers("/api/v1/bookings/**", "/api/v1/favourites/**").hasRole("CUSTOMER")
+                .requestMatchers("/api/v1/bookings/**", "/api/v1/favourites/**", "/api/v1/payments/sepay/**").hasRole("CUSTOMER")
                 .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").hasRole("CUSTOMER")
                 .anyRequest().authenticated()
             )

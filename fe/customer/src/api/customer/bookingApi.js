@@ -1,8 +1,45 @@
 import http from '../http'
 
+const unwrapData = (response) => response?.data?.data ?? null
+
 export const bookingApi = {
-  create: (payload) => http.post('/bookings', payload).then((r) => r.data.data),
-  mine: (page = 0, size = 10) => http.get('/bookings/me', { params: { page, size } }).then((r) => r.data.data),
-  detail: (code) => http.get(`/bookings/${code}`).then((r) => r.data.data),
-  cancel: (code) => http.patch(`/bookings/${code}/cancel`).then((r) => r.data.data),
+  create: async (payload) => {
+    const response = await http.post('/bookings', payload)
+    return unwrapData(response)
+  },
+
+  mine: async (page = 0, size = 10) => {
+    const response = await http.get('/bookings/me', {
+      params: { page, size },
+    })
+    return unwrapData(response)
+  },
+
+  detail: async (code) => {
+    const response = await http.get(
+      `/bookings/${encodeURIComponent(code)}`,
+    )
+    return unwrapData(response)
+  },
+
+  cancel: async (code) => {
+    const response = await http.patch(
+      `/bookings/${encodeURIComponent(code)}/cancel`,
+    )
+    return unwrapData(response)
+  },
+
+  prepareSePay: async (bookingCode) => {
+    const response = await http.post(
+      `/payments/sepay/${encodeURIComponent(bookingCode)}/prepare`,
+    )
+    return unwrapData(response)
+  },
+
+  sePayStatus: async (bookingCode) => {
+    const response = await http.get(
+      `/payments/sepay/${encodeURIComponent(bookingCode)}/status`,
+    )
+    return unwrapData(response)
+  },
 }

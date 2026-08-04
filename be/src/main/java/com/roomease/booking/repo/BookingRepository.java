@@ -20,6 +20,11 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     @EntityGraph(attributePaths = {"property", "property.owner", "user"})
     Optional<Booking> findByBookingCode(String bookingCode);
 
+    @EntityGraph(attributePaths = {"property", "property.owner", "user"})
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from Booking b where upper(b.bookingCode) = upper(:bookingCode)")
+    Optional<Booking> findByBookingCodeForUpdate(@Param("bookingCode") String bookingCode);
+
     @EntityGraph(attributePaths = {"property"})
     Page<Booking> findByUser_IdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 

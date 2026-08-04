@@ -162,11 +162,22 @@ public class BookingService {
         historyRepository.save(BookingStatusHistory.builder()
             .bookingId(saved.getId()).fromStatus(null).toStatus(saved.getStatus().name())
             .note("Booking created").changedBy(user.getId()).createdAt(OffsetDateTime.now()).build());
+        String paymentProvider = switch (request.paymentMethod()) {
+            case "SEPAY" -> "SEPAY";
+            case "CARD" -> "CARD";
+            case "BANK_TRANSFER" -> "BANK_TRANSFER";
+            default -> "INTERNAL";
+        };
+
+        String paymentRecordStatus = "PAY_AT_PROPERTY".equals(request.paymentMethod())
+            ? "SUCCEEDED"
+            : "PENDING";
+
         paymentRepository.save(Payment.builder()
             .bookingId(saved.getId())
-            .provider("INTERNAL")
+            .provider(paymentProvider)
             .paymentMethod(request.paymentMethod())
-            .status("PENDING")
+            .status(paymentRecordStatus)
             .amount(total)
             .currency("VND")
             .build());

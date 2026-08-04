@@ -54,3 +54,13 @@ app:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:5174,http://localhost:5175}
   google:
     client-id: ${GOOGLE_CLIENT_ID:}
+
+  sepay:
+    webhook-secret: ${SEPAY_WEBHOOK_SECRET:}
+    bank-code: ${SEPAY_BANK_CODE:TPBank}
+    account-number: ${SEPAY_ACCOUNT_NUMBER:}
+    account-name: ${SEPAY_ACCOUNT_NAME:}
+    qr-template: ${SEPAY_QR_TEMPLATE:compact}
+    store-name: ${SEPAY_STORE_NAME:RoomEase}
+    memo-prefix: ${SEPAY_MEMO_PREFIX:}
+    max-timestamp-drift-seconds: ${SEPAY_MAX_TIMESTAMP_DRIFT_SECONDS:300}
