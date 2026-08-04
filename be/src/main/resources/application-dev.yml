@@ -1,6 +1,8 @@
 spring:
   jpa:
     show-sql: false
+
 logging:
   level:
     com.roomease: DEBUG
+    com.roomease.payment: DEBUG
