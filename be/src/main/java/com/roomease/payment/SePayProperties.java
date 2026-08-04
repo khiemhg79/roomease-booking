@@ -9,8 +9,8 @@ public class SePayProperties {
 
     private String webhookSecret = "";
     private String bankCode = "TPBank";
-    private String accountNumber = "";
-    private String accountName = "";
+    private String accountNumber = "00004005537";
+    private String accountName = "HOANG GIA KHIEM";
     private String qrTemplate = "compact";
     private String storeName = "RoomEase";
     private String memoPrefix = "";
@@ -21,9 +21,7 @@ public class SePayProperties {
     }
 
     public void setWebhookSecret(String webhookSecret) {
-        this.webhookSecret = webhookSecret == null
-            ? ""
-            : webhookSecret.trim();
+        this.webhookSecret = normalize(webhookSecret);
     }
 
     public String getBankCode() {
@@ -31,9 +29,8 @@ public class SePayProperties {
     }
 
     public void setBankCode(String bankCode) {
-        this.bankCode = bankCode == null
-            ? "TPBank"
-            : bankCode.trim();
+        String value = normalize(bankCode);
+        this.bankCode = value.isBlank() ? "TPBank" : value;
     }
 
     public String getAccountNumber() {
@@ -41,9 +38,12 @@ public class SePayProperties {
     }
 
     public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber == null
-            ? ""
-            : accountNumber.replaceAll("\\s+", "");
+        String value = normalize(accountNumber)
+            .replaceAll("\\s+", "");
+
+        this.accountNumber = value.isBlank()
+            ? "00004005537"
+            : value;
     }
 
     public String getAccountName() {
@@ -51,9 +51,11 @@ public class SePayProperties {
     }
 
     public void setAccountName(String accountName) {
-        this.accountName = accountName == null
-            ? ""
-            : accountName.trim();
+        String value = normalize(accountName);
+
+        this.accountName = value.isBlank()
+            ? "HOANG GIA KHIEM"
+            : value;
     }
 
     public String getQrTemplate() {
@@ -61,9 +63,8 @@ public class SePayProperties {
     }
 
     public void setQrTemplate(String qrTemplate) {
-        this.qrTemplate = qrTemplate == null || qrTemplate.isBlank()
-            ? "compact"
-            : qrTemplate.trim();
+        String value = normalize(qrTemplate);
+        this.qrTemplate = value.isBlank() ? "compact" : value;
     }
 
     public String getStoreName() {
@@ -71,9 +72,8 @@ public class SePayProperties {
     }
 
     public void setStoreName(String storeName) {
-        this.storeName = storeName == null || storeName.isBlank()
-            ? "RoomEase"
-            : storeName.trim();
+        String value = normalize(storeName);
+        this.storeName = value.isBlank() ? "RoomEase" : value;
     }
 
     public String getMemoPrefix() {
@@ -81,9 +81,7 @@ public class SePayProperties {
     }
 
     public void setMemoPrefix(String memoPrefix) {
-        this.memoPrefix = memoPrefix == null
-            ? ""
-            : memoPrefix.trim();
+        this.memoPrefix = normalize(memoPrefix);
     }
 
     public long getMaxTimestampDriftSeconds() {
@@ -97,5 +95,9 @@ public class SePayProperties {
             maxTimestampDriftSeconds > 0
                 ? maxTimestampDriftSeconds
                 : 300;
+    }
+
+    private String normalize(String value) {
+        return value == null ? "" : value.trim();
     }
 }

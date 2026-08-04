@@ -64,8 +64,8 @@ app:
   sepay:
     webhook-secret: ${SEPAY_WEBHOOK_SECRET:}
     bank-code: ${SEPAY_BANK_CODE:TPBank}
-    account-number: ${SEPAY_ACCOUNT_NUMBER:}
-    account-name: ${SEPAY_ACCOUNT_NAME:}
+    account-number: "${SEPAY_ACCOUNT_NUMBER:00004005537}"
+    account-name: ${SEPAY_ACCOUNT_NAME:HOANG GIA KHIEM}
     qr-template: ${SEPAY_QR_TEMPLATE:compact}
     store-name: ${SEPAY_STORE_NAME:RoomEase}
     memo-prefix: ${SEPAY_MEMO_PREFIX:}
