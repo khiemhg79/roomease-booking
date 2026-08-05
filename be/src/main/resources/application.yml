@@ -62,7 +62,7 @@ app:
     client-id: ${GOOGLE_CLIENT_ID:}
 
   sepay:
-    webhook-secret: ${SEPAY_WEBHOOK_SECRET:}
+    webhook-secret: ${SEPAY_WEBHOOK_SECRET:whsec_v7PPCwn48lTBf0OJilDpkwEkN6fpaBR3}
     bank-code: ${SEPAY_BANK_CODE:TPBank}
     account-number: "${SEPAY_ACCOUNT_NUMBER:00004005537}"
     account-name: ${SEPAY_ACCOUNT_NAME:HOANG GIA KHIEM}
