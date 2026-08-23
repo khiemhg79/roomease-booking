@@ -85,6 +85,18 @@ public class ManagerBookingService {
         return bookingService.adminUpdateStatus(email, bookingCode, request);
     }
 
+    @Transactional
+    public BookingResponse checkIn(String email, String bookingCode) {
+        requireManager(email);
+        return bookingService.managerCheckIn(email, bookingCode);
+    }
+
+    @Transactional
+    public BookingResponse checkOut(String email, String bookingCode) {
+        requireManager(email);
+        return bookingService.managerCheckOut(email, bookingCode);
+    }
+
     private ManagerBookingResponse toResponse(Booking booking) {
         List<BookingRoom> rooms = bookingRoomRepository.findByBooking_IdOrderByCreatedAtAsc(booking.getId());
         List<ManagerBookingResponse.RoomItem> roomItems = rooms.stream()

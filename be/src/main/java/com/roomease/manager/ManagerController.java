@@ -217,6 +217,28 @@ public class ManagerController {
         return ApiResponse.ok(managerBookingService.detail(authentication.getName(), bookingCode));
     }
 
+    @PatchMapping("/bookings/{bookingCode}/check-in")
+    public ApiResponse<BookingResponse> checkIn(
+        Authentication authentication,
+        @PathVariable String bookingCode
+    ) {
+        return ApiResponse.ok(
+            "Đã xác nhận khách nhận phòng",
+            managerBookingService.checkIn(authentication.getName(), bookingCode)
+        );
+    }
+
+    @PatchMapping("/bookings/{bookingCode}/check-out")
+    public ApiResponse<BookingResponse> checkOut(
+        Authentication authentication,
+        @PathVariable String bookingCode
+    ) {
+        return ApiResponse.ok(
+            "Đã xác nhận khách trả phòng",
+            managerBookingService.checkOut(authentication.getName(), bookingCode)
+        );
+    }
+
     @PatchMapping("/bookings/{bookingCode}/status")
     public ApiResponse<BookingResponse> updateBookingStatus(
         Authentication authentication,

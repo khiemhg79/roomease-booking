@@ -256,6 +256,86 @@ public class BookingService {
         return toResponse(booking, bookingRoomRepository.findByBooking_IdOrderByCreatedAtAsc(booking.getId()));
     }
 
+    @Transactional
+    public BookingResponse managerCheckIn(String email, String bookingCode) {
+        User actor = requireUser(email);
+        Booking booking = requireManagerBooking(actor, bookingCode);
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new ConflictException("Chỉ booking đã xác nhận mới có thể check-in");
+        }
+
+        if (booking.getPaymentStatus() != PaymentStatus.PAID
+            && booking.getPaymentStatus() != PaymentStatus.NOT_REQUIRED) {
+            throw new ConflictException("Booking chưa hoàn tất thanh toán nên chưa thể check-in");
+        }
+
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        if (today.isBefore(booking.getCheckIn())) {
+            throw new ConflictException("Chưa đến ngày nhận phòng của booking");
+        }
+        if (!today.isBefore(booking.getCheckOut())) {
+            throw new ConflictException("Booking đã qua ngày trả phòng, không thể check-in");
+        }
+
+        BookingStatus from = booking.getStatus();
+        booking.setStatus(BookingStatus.CHECKED_IN);
+        bookingRepository.save(booking);
+
+        historyRepository.save(BookingStatusHistory.builder()
+            .bookingId(booking.getId())
+            .fromStatus(from.name())
+            .toStatus(BookingStatus.CHECKED_IN.name())
+            .note("Quản lý xác nhận khách đã nhận phòng")
+            .changedBy(actor.getId())
+            .createdAt(OffsetDateTime.now())
+            .build());
+
+        return toResponse(booking, bookingRoomRepository.findByBooking_IdOrderByCreatedAtAsc(booking.getId()));
+    }
+
+    @Transactional
+    public BookingResponse managerCheckOut(String email, String bookingCode) {
+        User actor = requireUser(email);
+        Booking booking = requireManagerBooking(actor, bookingCode);
+
+        if (booking.getStatus() != BookingStatus.CHECKED_IN) {
+            throw new ConflictException("Chỉ booking đang lưu trú mới có thể check-out");
+        }
+
+        BookingStatus from = booking.getStatus();
+        booking.setStatus(BookingStatus.COMPLETED);
+        bookingRepository.save(booking);
+
+        historyRepository.save(BookingStatusHistory.builder()
+            .bookingId(booking.getId())
+            .fromStatus(from.name())
+            .toStatus(BookingStatus.COMPLETED.name())
+            .note("Quản lý xác nhận khách đã trả phòng")
+            .changedBy(actor.getId())
+            .createdAt(OffsetDateTime.now())
+            .build());
+
+        return toResponse(booking, bookingRoomRepository.findByBooking_IdOrderByCreatedAtAsc(booking.getId()));
+    }
+
+    private Booking requireManagerBooking(User actor, String bookingCode) {
+        if (actor.getRole() != Role.ADMIN && actor.getRole() != Role.HOTEL_MANAGER) {
+            throw new ForbiddenException("Tài khoản không có quyền vận hành booking");
+        }
+
+        Booking booking = bookingRepository.findByBookingCode(bookingCode)
+            .orElseThrow(() -> new NotFoundException("Không tìm thấy booking"));
+
+        if (actor.getRole() != Role.ADMIN
+            && (booking.getProperty().getOwner() == null
+                || !booking.getProperty().getOwner().getId().equals(actor.getId()))) {
+            throw new ForbiddenException("Bạn không có quyền vận hành booking của chỗ nghỉ này");
+        }
+
+        return booking;
+    }
+
     private void cancelInternal(Booking booking, UUID actorId, String note) {
         if (booking.getStatus() == BookingStatus.CANCELLED) throw new ConflictException("Booking đã được hủy");
         if (booking.getStatus() == BookingStatus.COMPLETED || booking.getStatus() == BookingStatus.CHECKED_IN

@@ -26,8 +26,8 @@ const PAYMENT_LABELS = {
 
 const TRANSITIONS = {
   PENDING: ['CONFIRMED', 'CANCELLED'],
-  CONFIRMED: ['CHECKED_IN', 'NO_SHOW', 'CANCELLED'],
-  CHECKED_IN: ['COMPLETED'],
+  CONFIRMED: ['NO_SHOW', 'CANCELLED'],
+  CHECKED_IN: [],
   COMPLETED: [],
   CANCELLED: [],
   NO_SHOW: [],
@@ -130,6 +130,35 @@ export default function ManagerBookingsPage() {
     }
   }
 
+  const operateStay = async (booking, action) => {
+    const isCheckIn = action === 'check-in'
+    const label = isCheckIn ? 'nhận phòng' : 'trả phòng'
+
+    if (!window.confirm(`Xác nhận khách đã ${label} cho booking ${booking.bookingCode}?`)) return
+
+    setWorkingCode(booking.bookingCode)
+    setError('')
+    setNotice('')
+
+    try {
+      if (isCheckIn) {
+        await managerApi.checkInBooking(booking.bookingCode)
+      } else {
+        await managerApi.checkOutBooking(booking.bookingCode)
+      }
+
+      setNotice(`Đã xác nhận ${label} cho booking ${booking.bookingCode}.`)
+      if (detail?.bookingCode === booking.bookingCode) {
+        setDetail(await managerApi.booking(booking.bookingCode))
+      }
+      await load()
+    } catch (requestError) {
+      setError(apiMessage(requestError))
+    } finally {
+      setWorkingCode(null)
+    }
+  }
+
   return (
     <main className="manager-page">
       <header className="manager-page-header">
@@ -190,6 +219,12 @@ export default function ManagerBookingsPage() {
                     <td>
                       <div className="manager-row-actions booking-actions-inline">
                         <button type="button" onClick={() => openDetail(booking.bookingCode)}>Chi tiết</button>
+                        {booking.status === 'CONFIRMED' && (
+                          <button type="button" disabled={workingCode === booking.bookingCode} onClick={() => operateStay(booking, 'check-in')}>Check-in</button>
+                        )}
+                        {booking.status === 'CHECKED_IN' && (
+                          <button type="button" disabled={workingCode === booking.bookingCode} onClick={() => operateStay(booking, 'check-out')}>Check-out</button>
+                        )}
                         {(TRANSITIONS[booking.status] || []).map((status) => (
                           <button type="button" disabled={workingCode === booking.bookingCode} className={status === 'CANCELLED' ? 'danger' : ''} key={status} onClick={() => updateStatus(booking, status)}>{STATUS_LABELS[status]}</button>
                         ))}
@@ -262,9 +297,15 @@ export default function ManagerBookingsPage() {
 
                 {detail.specialRequest && <section className="manager-detail-section manager-special-request"><h3>Yêu cầu đặc biệt</h3><p>{detail.specialRequest}</p></section>}
 
-                {!!TRANSITIONS[detail.status]?.length && (
+                {(detail.status === 'CONFIRMED' || detail.status === 'CHECKED_IN' || !!TRANSITIONS[detail.status]?.length) && (
                   <section className="manager-drawer-actions">
-                    {TRANSITIONS[detail.status].map((status) => <button className={`btn ${status === 'CANCELLED' ? 'btn-danger' : 'btn-primary'}`} type="button" key={status} onClick={() => updateStatus(detail, status)}>{STATUS_LABELS[status]}</button>)}
+                    {detail.status === 'CONFIRMED' && (
+                      <button className="btn btn-primary" type="button" disabled={workingCode === detail.bookingCode} onClick={() => operateStay(detail, 'check-in')}>Xác nhận check-in</button>
+                    )}
+                    {detail.status === 'CHECKED_IN' && (
+                      <button className="btn btn-primary" type="button" disabled={workingCode === detail.bookingCode} onClick={() => operateStay(detail, 'check-out')}>Xác nhận check-out</button>
+                    )}
+                    {(TRANSITIONS[detail.status] || []).map((status) => <button className={`btn ${status === 'CANCELLED' ? 'btn-danger' : 'btn-primary'}`} type="button" key={status} onClick={() => updateStatus(detail, status)}>{STATUS_LABELS[status]}</button>)}
                   </section>
                 )}
               </div>
