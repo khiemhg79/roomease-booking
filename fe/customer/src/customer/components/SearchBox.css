@@ -1,0 +1,525 @@
+/* =========================================================
+   RoomEase Search Box
+   Chỉ thay đổi giao diện. Không thay đổi query/API/logic search.
+   ========================================================= */
+
+.roomease-search-box {
+    position: relative;
+    z-index: 40;
+    display: grid;
+    grid-template-columns:
+        minmax(250px, 1.45fr) minmax(180px, .9fr) minmax(180px, .9fr) minmax(270px, 1.25fr) 150px;
+    gap: 0;
+    width: 100%;
+    max-width: 1120px;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, .32);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .96);
+    box-shadow:
+        0 18px 50px rgba(4, 27, 65, .24),
+        0 3px 10px rgba(4, 27, 65, .08);
+    color: #17213a;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.roomease-search-field {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 76px;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 16px;
+    border-right: 1px solid #e8ecf3;
+    border-radius: 0 !important;
+    background: transparent;
+    transition:
+        background .18s ease,
+        box-shadow .18s ease;
+}
+
+.roomease-search-field:first-child {
+    border-radius: 13px 0 0 13px !important;
+}
+
+.roomease-search-field:hover,
+.roomease-search-field:focus-within {
+    z-index: 2;
+    background: #f7faff;
+    box-shadow: inset 0 0 0 1px #d9e6fb;
+}
+
+.roomease-search-field .search-field-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 7px;
+    color: #66728a;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: .8px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.search-field-icon {
+    width: 17px;
+    height: 17px;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    border-radius: 5px;
+    background: #edf4ff;
+    color: #1769e0;
+    font-size: 9px;
+    font-style: normal;
+}
+
+.location-icon {
+    color: #d88700;
+    background: #fff5dc;
+}
+
+.guest-icon {
+    color: #1769e0;
+    background: #eaf3ff;
+}
+
+.roomease-search-field input {
+    width: 100%;
+    min-height: 29px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #17213a;
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.roomease-search-field input::placeholder {
+    color: #8791a4;
+    font-weight: 650;
+    opacity: 1;
+}
+
+.roomease-search-field input[type='date'] {
+    color: #17213a;
+    cursor: pointer;
+}
+
+.roomease-search-field input[type='date']::-webkit-calendar-picker-indicator {
+    width: 18px;
+    height: 18px;
+    padding: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: .72;
+}
+
+.guest-field {
+    cursor: default;
+}
+
+.guest-summary-button {
+    width: 100%;
+    min-height: 29px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #17213a;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 750;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.guest-summary-button>span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.guest-chevron {
+    flex: none;
+    color: #69758c;
+    font-size: 16px;
+    transition: transform .18s ease;
+}
+
+.guest-chevron.open {
+    transform: rotate(180deg);
+}
+
+.guest-picker {
+    position: absolute;
+    z-index: 90;
+    top: calc(100% + 14px);
+    right: 0;
+    width: 340px;
+    padding: 14px;
+    border: 1px solid #e0e6ef;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow:
+        0 22px 60px rgba(14, 36, 70, .20),
+        0 4px 15px rgba(14, 36, 70, .08);
+    animation: guestPickerIn .16s ease;
+}
+
+@keyframes guestPickerIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.guest-picker::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: 34px;
+    width: 13px;
+    height: 13px;
+    border-top: 1px solid #e0e6ef;
+    border-left: 1px solid #e0e6ef;
+    background: #fff;
+    transform: rotate(45deg);
+}
+
+.guest-picker-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 1px 1px 13px;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.guest-picker-heading>div {
+    display: grid;
+    gap: 4px;
+}
+
+.guest-picker-heading strong {
+    color: #17213a;
+    font-size: 15px;
+}
+
+.guest-picker-heading span {
+    color: #7a8498;
+    font-size: 11px;
+}
+
+.guest-picker-heading>button {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #e0e5ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #657089;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.guest-picker-heading>button:hover {
+    background: #f6f8fb;
+    color: #17213a;
+}
+
+.guest-picker-list {
+    display: grid;
+}
+
+.guest-picker-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    min-height: 62px;
+    border-bottom: 1px solid #f0f2f6;
+}
+
+.guest-picker-copy {
+    display: grid;
+    gap: 4px;
+}
+
+.guest-picker-copy strong {
+    color: #17213a;
+    font-size: 13px;
+}
+
+.guest-picker-copy span {
+    color: #8992a4;
+    font-size: 10px;
+}
+
+.guest-stepper {
+    display: grid;
+    grid-template-columns: 34px 35px 34px;
+    align-items: center;
+    gap: 3px;
+}
+
+.guest-stepper button {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid #cdd9eb;
+    border-radius: 10px;
+    background: #fff;
+    color: #1769e0;
+    font-size: 20px;
+    line-height: 1;
+    transition:
+        background .16s ease,
+        border-color .16s ease,
+        color .16s ease,
+        transform .16s ease;
+}
+
+.guest-stepper button:hover:not(:disabled) {
+    border-color: #1769e0;
+    background: #edf5ff;
+    transform: translateY(-1px);
+}
+
+.guest-stepper button:disabled {
+    border-color: #edf0f4;
+    color: #c4cad4;
+    background: #fafbfc;
+    cursor: not-allowed;
+}
+
+.guest-stepper strong {
+    color: #17213a;
+    font-size: 14px;
+    text-align: center;
+}
+
+.guest-picker-done {
+    width: 100%;
+    min-height: 40px;
+    margin-top: 13px;
+    border: 0;
+    border-radius: 10px;
+    background: #12366d;
+    color: #fff;
+    font-weight: 800;
+    transition:
+        background .16s ease,
+        transform .16s ease;
+}
+
+.guest-picker-done:hover {
+    background: #0b2855;
+    transform: translateY(-1px);
+}
+
+.roomease-search-submit {
+    min-width: 150px;
+    min-height: 76px;
+    align-self: stretch;
+    border-radius: 13px !important;
+    background: linear-gradient(135deg, #1769e0 0%, #0f5dcc 100%);
+    box-shadow:
+        0 8px 22px rgba(23, 105, 224, .25);
+    font-size: 15px;
+    font-weight: 850;
+    letter-spacing: -.1px;
+}
+
+.roomease-search-submit:hover {
+    background: linear-gradient(135deg, #0f62d7 0%, #0b50b4 100%);
+    box-shadow:
+        0 10px 25px rgba(23, 105, 224, .32);
+}
+
+.search-button-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Thanh search ở trang kết quả / trang chi tiết */
+.roomease-search-box-compact {
+    max-width: none;
+    border-color: rgba(255, 255, 255, .15);
+    box-shadow: 0 9px 28px rgba(0, 0, 0, .14);
+}
+
+.roomease-search-box-compact .roomease-search-field {
+    min-height: 66px;
+    padding-block: 9px;
+}
+
+.roomease-search-box-compact .roomease-search-submit {
+    min-height: 66px;
+}
+
+.roomease-search-box-compact .search-field-label {
+    margin-bottom: 5px;
+}
+
+@media (max-width: 1080px) {
+    .roomease-search-box {
+        grid-template-columns:
+            minmax(240px, 1.25fr) minmax(175px, .9fr) minmax(175px, .9fr);
+        gap: 1px;
+    }
+
+    .roomease-search-field {
+        border-bottom: 1px solid #e8ecf3;
+    }
+
+    .destination-field {
+        border-radius: 13px 0 0 0 !important;
+    }
+
+    .guest-field {
+        grid-column: 1 / span 2;
+        border-bottom: 0;
+        border-radius: 0 0 0 13px !important;
+    }
+
+    .roomease-search-submit {
+        min-height: 76px;
+        border-radius: 0 0 13px 0 !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .roomease-search-box {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1px;
+        padding: 4px;
+        border-radius: 15px;
+    }
+
+    .roomease-search-field,
+    .roomease-search-field:first-child,
+    .destination-field,
+    .guest-field {
+        grid-column: 1;
+        min-height: 68px;
+        border-right: 0;
+        border-bottom: 1px solid #e8ecf3;
+        border-radius: 0 !important;
+    }
+
+    .roomease-search-field:first-child {
+        border-radius: 11px 11px 0 0 !important;
+    }
+
+    .guest-field {
+        border-bottom: 0;
+    }
+
+    .guest-summary-button {
+        font-size: 13px;
+    }
+
+    .guest-picker {
+        position: fixed;
+        z-index: 100;
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        width: auto;
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        border-radius: 18px;
+    }
+
+    .guest-picker::before {
+        display: none;
+    }
+
+    .roomease-search-submit,
+    .roomease-search-box-compact .roomease-search-submit {
+        min-height: 54px;
+        grid-column: 1;
+        border-radius: 0 0 11px 11px !important;
+    }
+}
+
+
+/* =========================================================
+   FIX: dropdown bị các thẻ "So sánh / Yêu thích / Trợ lý" đè lên
+   customer-enhanced.css đặt .customer-tool-grid z-index: 3 và margin âm.
+   Chỉ chỉnh lớp hiển thị, không đổi logic.
+   ========================================================= */
+
+.hero-content {
+    position: relative;
+    z-index: 20;
+    overflow: visible;
+}
+
+.hero-content .roomease-search-box {
+    position: relative;
+    z-index: 50;
+}
+
+.hero-content .guest-field {
+    z-index: 60;
+}
+
+.hero-content .guest-picker {
+    z-index: 9999;
+}
+
+/* Các card phía dưới vẫn nổi lên hero nhưng nằm dưới dropdown. */
+.customer-tool-grid {
+    z-index: 2;
+}
+
+/* Dropdown gọn hơn, không che quá nhiều nội dung. */
+.guest-picker-heading {
+    padding-bottom: 10px;
+}
+
+.guest-picker-row {
+    min-height: 60px;
+}
+
+.guest-picker-done {
+    min-height: 38px;
+    margin-top: 10px;
+}
+
+/* Khi dropdown mở, field khách nổi nhẹ để nhìn rõ điểm neo. */
+.guest-field:has(.guest-picker) {
+    background: #f5f9ff;
+    box-shadow: inset 0 0 0 1px #bcd5fa;
+}
+
+/* Không để popup bị cắt bởi container/search strip ở các trang khác. */
+.search-strip,
+.search-strip .container,
+.hero,
+.hero-content {
+    overflow: visible;
+}
