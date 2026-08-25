@@ -24,12 +24,19 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
+
     private final AdminService adminService;
     private final ManagerBookingService managerBookingService;
 
     @GetMapping("/dashboard")
-    public ApiResponse<AdminDashboardResponse> dashboard(Authentication authentication) {
-        return ApiResponse.ok(adminService.dashboard(authentication.getName()));
+    public ApiResponse<AdminDashboardResponse> dashboard(
+        Authentication authentication
+    ) {
+        return ApiResponse.ok(
+            adminService.dashboard(
+                authentication.getName()
+            )
+        );
     }
 
     @GetMapping("/users")
@@ -41,7 +48,29 @@ public class AdminController {
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
-        return ApiResponse.ok(adminService.users(authentication.getName(), role, status, keyword, page, size));
+        return ApiResponse.ok(
+            adminService.users(
+                authentication.getName(),
+                role,
+                status,
+                keyword,
+                page,
+                size
+            )
+        );
+    }
+
+    @GetMapping("/users/{userId}")
+    public ApiResponse<AdminUserDetailResponse> userDetail(
+        Authentication authentication,
+        @PathVariable UUID userId
+    ) {
+        return ApiResponse.ok(
+            adminService.userDetail(
+                authentication.getName(),
+                userId
+            )
+        );
     }
 
     @PatchMapping("/users/{userId}/status")
@@ -50,8 +79,14 @@ public class AdminController {
         @PathVariable UUID userId,
         @Valid @RequestBody UpdateUserStatusRequest request
     ) {
-        return ApiResponse.ok("Đã cập nhật trạng thái tài khoản",
-            adminService.updateUserStatus(authentication.getName(), userId, request));
+        return ApiResponse.ok(
+            "Đã cập nhật trạng thái tài khoản",
+            adminService.updateUserStatus(
+                authentication.getName(),
+                userId,
+                request
+            )
+        );
     }
 
     @PatchMapping("/users/{userId}/role")
@@ -60,8 +95,14 @@ public class AdminController {
         @PathVariable UUID userId,
         @Valid @RequestBody UpdateUserRoleRequest request
     ) {
-        return ApiResponse.ok("Đã cập nhật quyền tài khoản",
-            adminService.updateUserRole(authentication.getName(), userId, request));
+        return ApiResponse.ok(
+            "Đã cập nhật quyền tài khoản",
+            adminService.updateUserRole(
+                authentication.getName(),
+                userId,
+                request
+            )
+        );
     }
 
     @GetMapping("/properties")
@@ -72,7 +113,28 @@ public class AdminController {
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
-        return ApiResponse.ok(adminService.properties(authentication.getName(), status, keyword, page, size));
+        return ApiResponse.ok(
+            adminService.properties(
+                authentication.getName(),
+                status,
+                keyword,
+                page,
+                size
+            )
+        );
+    }
+
+    @GetMapping("/properties/{propertyId}")
+    public ApiResponse<AdminPropertyDetailResponse> propertyDetail(
+        Authentication authentication,
+        @PathVariable UUID propertyId
+    ) {
+        return ApiResponse.ok(
+            adminService.propertyDetail(
+                authentication.getName(),
+                propertyId
+            )
+        );
     }
 
     @PatchMapping("/properties/{propertyId}")
@@ -81,8 +143,14 @@ public class AdminController {
         @PathVariable UUID propertyId,
         @Valid @RequestBody ModeratePropertyRequest request
     ) {
-        return ApiResponse.ok("Đã cập nhật chỗ nghỉ",
-            adminService.moderateProperty(authentication.getName(), propertyId, request));
+        return ApiResponse.ok(
+            "Đã cập nhật chỗ nghỉ",
+            adminService.moderateProperty(
+                authentication.getName(),
+                propertyId,
+                request
+            )
+        );
     }
 
     @GetMapping("/bookings")
@@ -90,15 +158,28 @@ public class AdminController {
         Authentication authentication,
         @RequestParam(required = false) UUID propertyId,
         @RequestParam(required = false) String status,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate fromDate,
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        LocalDate toDate,
         @RequestParam(required = false) String keyword,
         @RequestParam(defaultValue = "0") @Min(0) int page,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
     ) {
-        return ApiResponse.ok(managerBookingService.list(
-            authentication.getName(), propertyId, status, fromDate, toDate, keyword, page, size
-        ));
+        return ApiResponse.ok(
+            managerBookingService.list(
+                authentication.getName(),
+                propertyId,
+                status,
+                fromDate,
+                toDate,
+                keyword,
+                page,
+                size
+            )
+        );
     }
 
     @GetMapping("/bookings/{bookingCode}")
@@ -106,7 +187,12 @@ public class AdminController {
         Authentication authentication,
         @PathVariable String bookingCode
     ) {
-        return ApiResponse.ok(managerBookingService.detail(authentication.getName(), bookingCode));
+        return ApiResponse.ok(
+            managerBookingService.detail(
+                authentication.getName(),
+                bookingCode
+            )
+        );
     }
 
     @PatchMapping("/bookings/{bookingCode}/status")
@@ -115,7 +201,50 @@ public class AdminController {
         @PathVariable String bookingCode,
         @Valid @RequestBody UpdateBookingStatusRequest request
     ) {
-        return ApiResponse.ok("Đã cập nhật trạng thái booking",
-            managerBookingService.updateStatus(authentication.getName(), bookingCode, request));
+        return ApiResponse.ok(
+            "Đã cập nhật trạng thái booking",
+            managerBookingService.updateStatus(
+                authentication.getName(),
+                bookingCode,
+                request
+            )
+        );
+    }
+
+    @GetMapping("/reviews")
+    public ApiResponse<PageResponse<AdminReviewResponse>> reviews(
+        Authentication authentication,
+        @RequestParam(required = false) String status,
+        @RequestParam(required = false) UUID propertyId,
+        @RequestParam(required = false) String keyword,
+        @RequestParam(defaultValue = "0") @Min(0) int page,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return ApiResponse.ok(
+            adminService.reviews(
+                authentication.getName(),
+                status,
+                propertyId,
+                keyword,
+                page,
+                size
+            )
+        );
+    }
+
+    @PatchMapping("/reviews/{reviewId}/status")
+    public ApiResponse<AdminReviewResponse> updateReviewStatus(
+        Authentication authentication,
+        @PathVariable UUID reviewId,
+        @Valid @RequestBody UpdateReviewStatusRequest request
+    ) {
+        return ApiResponse.ok(
+            "Đã cập nhật trạng thái đánh giá",
+            adminService.updateReviewStatus(
+                authentication.getName(),
+                reviewId,
+                request
+            )
+        );
     }
 }

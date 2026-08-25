@@ -28,6 +28,11 @@ const links = [
     icon: '✓',
     label: 'Booking',
   },
+  {
+    to: '/admin/reviews',
+    icon: '★',
+    label: 'Đánh giá',
+  },
 ]
 
 export default function AdminLayout() {

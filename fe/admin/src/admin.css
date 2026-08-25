@@ -1126,3 +1126,616 @@
         text-align: left;
     }
 }
+
+
+/* =========================================================
+   ADMIN USER / PROPERTY / REVIEW MANAGEMENT
+   ========================================================= */
+
+.admin-table-panel {
+    padding: 0;
+    overflow: hidden;
+}
+
+.admin-table-panel .admin-panel-head {
+    padding: 18px 20px 0;
+}
+
+.admin-panel-head>div small {
+    display: block;
+    margin-top: 4px;
+    color: #8c94a5;
+    font-size: 11px;
+}
+
+.admin-filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.admin-filters .admin-filter-buttons {
+    align-items: end;
+}
+
+.admin-success-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 13px 16px;
+    border: 1px solid #b9e6cb;
+    border-radius: 12px;
+    background: #edfaf2;
+    color: #176b42;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.admin-success-notice>span {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #25a565;
+    color: white;
+}
+
+.admin-primary-button,
+.admin-secondary-button,
+.admin-danger-button {
+    min-height: 40px;
+    padding: 0 15px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.admin-primary-button {
+    border: 1px solid var(--admin-purple);
+    background: var(--admin-purple);
+    color: white;
+}
+
+.admin-secondary-button {
+    border: 1px solid #d8deea;
+    background: white;
+    color: #444b5d;
+}
+
+.admin-danger-button {
+    border: 1px solid #efb9bf;
+    background: #fff0f1;
+    color: #b52f3f;
+}
+
+.admin-primary-button:disabled,
+.admin-secondary-button:disabled,
+.admin-danger-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.admin-link-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #4f2dab;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 900;
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin-link-button:hover {
+    text-decoration: underline;
+}
+
+.admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.admin-pagination button {
+    min-height: 38px;
+    padding: 0 13px;
+    border: 1px solid #d9deea;
+    border-radius: 9px;
+    background: white;
+    color: #3f4658;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.admin-pagination button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.admin-pagination span {
+    color: #737c91;
+    font-size: 12px;
+}
+
+.admin-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(12, 13, 24, .48);
+    backdrop-filter: blur(2px);
+}
+
+.admin-drawer {
+    width: min(580px, 100%);
+    height: 100vh;
+    overflow: auto;
+    background: #f7f8fc;
+    box-shadow: -18px 0 60px rgba(15, 18, 35, .2);
+}
+
+.admin-property-drawer {
+    width: min(650px, 100%);
+}
+
+.admin-drawer-head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 22px;
+    border-bottom: 1px solid #e2e5ee;
+    background: rgba(255, 255, 255, .97);
+    backdrop-filter: blur(12px);
+}
+
+.admin-drawer-head span {
+    display: block;
+    margin-bottom: 4px;
+    color: #868da0;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.admin-drawer-head h2 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.admin-drawer-head>button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #dde1ea;
+    border-radius: 9px;
+    background: white;
+    color: #4a5060;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.admin-drawer-loading {
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+}
+
+.admin-drawer-body {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+}
+
+.admin-detail-hero,
+.admin-detail-section {
+    border: 1px solid #e0e3ec;
+    border-radius: 14px;
+    background: white;
+}
+
+.admin-detail-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+}
+
+.admin-detail-hero.property {
+    justify-content: space-between;
+}
+
+.admin-detail-hero h3 {
+    margin: 4px 0;
+    font-size: 19px;
+}
+
+.admin-detail-hero p {
+    margin: 0;
+    color: #858da0;
+    line-height: 1.5;
+}
+
+.admin-avatar-placeholder {
+    flex: none;
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #5a34b8, #7b5ed0);
+    color: white;
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.admin-inline-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 8px 0;
+}
+
+.admin-detail-section {
+    padding: 18px;
+}
+
+.admin-detail-section h3 {
+    margin: 0 0 13px;
+    font-size: 15px;
+}
+
+.admin-detail-list {
+    margin: 0;
+}
+
+.admin-detail-list>div {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 14px;
+    padding: 10px 0;
+    border-top: 1px solid #edf0f5;
+}
+
+.admin-detail-list>div:first-child {
+    border-top: 0;
+}
+
+.admin-detail-list dt {
+    color: #838b9d;
+    font-size: 11px;
+}
+
+.admin-detail-list dd {
+    margin: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.admin-detail-description {
+    margin: 0;
+    color: #60697b;
+    line-height: 1.7;
+}
+
+.admin-detail-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.admin-detail-controls label {
+    display: grid;
+    gap: 6px;
+    color: #697186;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.admin-detail-controls select {
+    min-height: 42px;
+    padding: 9px 10px;
+    border: 1px solid #d8deea;
+    border-radius: 9px;
+    background: white;
+}
+
+.admin-mini-list {
+    display: grid;
+    gap: 9px;
+}
+
+.admin-mini-list article,
+.admin-room-admin-list article {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px;
+    border: 1px solid #e7e9f0;
+    border-radius: 10px;
+    background: #fafbfe;
+}
+
+.admin-mini-list article>div,
+.admin-room-admin-list article>div {
+    display: grid;
+    gap: 4px;
+}
+
+.admin-mini-list article>div:last-child,
+.admin-room-admin-list article>div:last-child {
+    justify-items: end;
+    text-align: right;
+}
+
+.admin-mini-list span,
+.admin-mini-list small,
+.admin-room-admin-list span,
+.admin-room-admin-list small {
+    color: #858da0;
+    font-size: 10px;
+}
+
+.admin-room-admin-list {
+    display: grid;
+    gap: 9px;
+}
+
+.admin-room-admin-list em {
+    font-style: normal;
+}
+
+.admin-property-score {
+    min-width: 92px;
+    padding: 13px;
+    border-radius: 13px;
+    background: #f0ecfb;
+    text-align: center;
+}
+
+.admin-property-score strong {
+    display: block;
+    color: #4f2dab;
+    font-size: 25px;
+}
+
+.admin-property-score span {
+    color: #7c8497;
+    font-size: 10px;
+}
+
+.admin-muted {
+    margin: 0;
+    color: #888fa0;
+}
+
+.admin-review-filters {
+    grid-template-columns: minmax(260px, 1fr) 260px 190px auto;
+}
+
+.admin-review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.admin-review-card {
+    display: grid;
+    gap: 15px;
+    padding: 20px;
+    border: 1px solid var(--admin-border);
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(25, 28, 55, .04);
+}
+
+.admin-review-card>header,
+.admin-review-card>footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.admin-review-card>header>div:first-child {
+    display: grid;
+    gap: 3px;
+}
+
+.admin-review-card>header span,
+.admin-review-property span {
+    color: #8a91a2;
+    font-size: 10px;
+}
+
+.admin-review-score {
+    min-width: 45px;
+    height: 45px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #5a34b8;
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.admin-review-score.large {
+    min-width: 62px;
+    height: 62px;
+    font-size: 20px;
+}
+
+.admin-review-property {
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f7f8fc;
+}
+
+.admin-review-card h2 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.admin-review-card>p {
+    margin: 0;
+    min-height: 48px;
+    color: #5e6678;
+    line-height: 1.65;
+}
+
+.admin-review-card>footer>div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-review-card footer small {
+    color: #979ead;
+    font-size: 9px;
+}
+
+.admin-review-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.admin-review-actions button {
+    min-height: 31px;
+    padding: 0 9px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.review-published {
+    background: #e2f7ea;
+    color: #167044;
+}
+
+.review-hidden {
+    background: #ffe3e6;
+    color: #a32939;
+}
+
+.review-pending {
+    background: #fff0ce;
+    color: #866000;
+}
+
+.admin-review-full-content {
+    margin: 0;
+    padding: 14px;
+    border-radius: 10px;
+    background: #f8f9fc;
+    color: #555e70;
+    line-height: 1.75;
+}
+
+.admin-empty-state {
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 6px;
+    text-align: center;
+}
+
+.admin-empty-state strong {
+    font-size: 18px;
+}
+
+.admin-empty-state span {
+    color: #8a91a2;
+}
+
+.admin-drawer-actions {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    gap: 9px;
+    padding: 14px;
+    border: 1px solid #e0e3ec;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 -8px 28px rgba(25, 28, 55, .06);
+    backdrop-filter: blur(10px);
+}
+
+@media(max-width:1150px) {
+    .admin-review-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-review-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-review-filters label:first-child {
+        grid-column: 1/-1;
+    }
+
+    .admin-review-filters .admin-filter-buttons {
+        grid-column: 1/-1;
+    }
+}
+
+@media(max-width:700px) {
+
+    .admin-filter-buttons,
+    .admin-detail-controls,
+    .admin-review-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-filter-buttons {
+        flex-direction: column;
+    }
+
+    .admin-filter-buttons button {
+        width: 100%;
+    }
+
+    .admin-review-filters label:first-child,
+    .admin-review-filters .admin-filter-buttons {
+        grid-column: auto;
+    }
+
+    .admin-detail-list>div {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .admin-detail-list dd {
+        text-align: left;
+    }
+
+    .admin-detail-hero.property,
+    .admin-review-card>header,
+    .admin-review-card>footer {
+        flex-direction: column;
+    }
+
+    .admin-review-actions {
+        justify-content: flex-start;
+    }
+}
